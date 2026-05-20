@@ -132,7 +132,7 @@ git --version
 
 ## Ejecución del backend
 
-Abre una terminal en la raíz del proyecto:
+Abre una terminal en la raíz del proyecto (la mostrada es la usada en el desarrollo):
 
 ```bash
 cd "C:\Users\aleja\OneDrive\Escritorio\Nueva carpeta\Programacion_web2_practica2"
@@ -218,7 +218,7 @@ http://localhost:3000/docs
 
 ## Ejecución del frontend
 
-Abre una segunda terminal y entra en la carpeta del frontend:
+Abre una segunda terminal y entra en la carpeta del frontend (la mostrada es la utilizada en el desarrollo):
 
 ```bash
 cd "C:\Users\aleja\OneDrive\Escritorio\Nueva carpeta\Programacion_web2_practica2\frontend-svelte"
