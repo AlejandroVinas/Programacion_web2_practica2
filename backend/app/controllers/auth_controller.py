@@ -1,5 +1,5 @@
-import sqlite3
 from fastapi import Depends
+from sqlalchemy.orm import Session
 
 from app.database import db_session
 from app.repositories.user_repository import UserRepository
@@ -7,8 +7,8 @@ from app.schemas.auth_schema import LoginRequest, RegisterRequest
 from app.services.auth_service import AuthService
 
 
-def _service(conn: sqlite3.Connection = Depends(db_session)) -> AuthService:
-    return AuthService(UserRepository(conn))
+def _service(session: Session = Depends(db_session)) -> AuthService:
+    return AuthService(UserRepository(session))
 
 
 def login(payload: LoginRequest, service: AuthService = Depends(_service)) -> dict:

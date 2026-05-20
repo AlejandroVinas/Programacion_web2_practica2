@@ -5,3 +5,4 @@ PyJWT==2.12.1
 pydantic==2.13.3
 python-dotenv==1.0.1
 pydantic-settings==2.12.0
+SQLAlchemy==2.0.36

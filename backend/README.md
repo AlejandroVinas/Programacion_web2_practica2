@@ -75,4 +75,19 @@ backend/
 
 ## Base de datos
 
-Se usa SQLite para evitar depender de MongoDB/Redis y facilitar la ejecución local. La capa de repositorios encapsula todas las consultas SQL, así que controladores y servicios no acceden directamente a la base de datos.
+Se usa SQLite mediante SQLAlchemy ORM para evitar depender de MongoDB/Redis y facilitar la ejecución local. La capa de repositorios encapsula el acceso a datos con SQLAlchemy, así que controladores y servicios no acceden directamente a la base de datos.
+
+## Funcionalidades avanzadas
+
+### Validación estricta
+
+Los esquemas Pydantic de `app/schemas` validan longitudes, formatos, rangos numéricos y roles permitidos. En productos, la creación con `multipart/form-data` también valida `nombre`, `precio`, `activo` e imagen. Los errores se devuelven como `422 Unprocessable Entity` con una estructura JSON uniforme.
+
+### Manejo global de errores
+
+`app/main.py` define manejadores para `AppError`, `RequestValidationError`, `SQLAlchemyError` y errores HTTP generales. Así, los errores de lógica de negocio, validación y base de datos no llegan al frontend como trazas internas, sino como respuestas HTTP limpias.
+
+### ORM y patrón repositorio
+
+`app/models.py` contiene los modelos ORM `UserModel` y `ProductModel`. `app/database.py` crea el motor, sesiones y tablas. Los repositorios `UserRepository` y `ProductRepository` son la única capa que trabaja con SQLAlchemy.
+

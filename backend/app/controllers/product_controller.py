@@ -1,24 +1,29 @@
 import shutil
-import sqlite3
 import time
 from pathlib import Path
+from typing import Annotated
 
-from fastapi import Depends, File, Form, Query, UploadFile
+from fastapi import Depends, File, Query, UploadFile
+from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.exceptions import AppError
 from app.database import db_session
 from app.dependencies.auth import get_current_user, require_admin
 from app.repositories.product_repository import ProductRepository
-from app.schemas.product_schema import ProductUpdate
+from app.schemas.product_schema import ProductCreate, ProductUpdate
 from app.services.product_service import ProductService
 
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+MAX_IMAGE_BYTES = 2 * 1024 * 1024
 
-def _service(conn: sqlite3.Connection = Depends(db_session)) -> ProductService:
-    return ProductService(ProductRepository(conn))
+
+def _service(session: Session = Depends(db_session)) -> ProductService:
+    return ProductService(ProductRepository(session))
 
 
 def get_products(
-    name: str | None = Query(default=None),
+    name: str | None = Query(default=None, max_length=120),
     _current_user: dict = Depends(get_current_user),
     service: ProductService = Depends(_service),
 ) -> list[dict]:
@@ -26,22 +31,14 @@ def get_products(
 
 
 def create_product(
-    nombre: str = Form(...),
-    precio: float = Form(...),
-    activo: bool = Form(True),
+    payload: Annotated[ProductCreate, Depends(ProductCreate.as_form)],
     imagen: UploadFile | None = File(default=None),
     _admin: dict = Depends(require_admin),
     service: ProductService = Depends(_service),
 ) -> dict:
-    filename = _save_upload(imagen) if imagen and imagen.filename else None
-    return service.create_product(
-        {
-            "nombre": nombre,
-            "precio": precio,
-            "activo": activo,
-            "imagen": filename,
-        }
-    )
+    data = payload.model_dump()
+    data["imagen"] = _save_upload(imagen) if imagen and imagen.filename else None
+    return service.create_product(data)
 
 
 def update_product(
@@ -65,8 +62,22 @@ def delete_product(
 def _save_upload(file: UploadFile) -> str:
     upload_dir: Path = get_settings().upload_path
     upload_dir.mkdir(parents=True, exist_ok=True)
-    safe_suffix = Path(file.filename or "").suffix.lower()
-    filename = f"{int(time.time() * 1000)}{safe_suffix}"
+
+    suffix = Path(file.filename or "").suffix.lower()
+    if suffix not in ALLOWED_IMAGE_EXTENSIONS:
+        raise AppError("Formato de imagen no permitido", 422)
+
+    content_type = file.content_type or ""
+    if content_type and not content_type.startswith("image/"):
+        raise AppError("El archivo subido debe ser una imagen", 422)
+
+    file.file.seek(0, 2)
+    size = file.file.tell()
+    file.file.seek(0)
+    if size > MAX_IMAGE_BYTES:
+        raise AppError("La imagen no puede superar 2 MB", 422)
+
+    filename = f"{int(time.time() * 1000)}{suffix}"
     target = upload_dir / filename
     with target.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)

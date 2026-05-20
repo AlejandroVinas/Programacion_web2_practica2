@@ -61,3 +61,16 @@ Frontend: `http://localhost:5173`
 | DELETE | `/api/users/{id}` | admin |
 
 La documentación automática de FastAPI está en `http://localhost:3000/docs`.
+
+## Funcionalidades avanzadas incluidas en esta versión
+
+Esta versión añade mejoras para el bloque avanzado del backend:
+
+- Validación estricta con Pydantic/FastAPI en usuarios, login, registro y productos.
+- Respuestas `422` estructuradas cuando los datos no cumplen formato, longitud o rango.
+- Manejo global de excepciones para errores de negocio, validación, HTTP y base de datos.
+- Persistencia real con SQLite mediante SQLAlchemy ORM.
+- Patrón repositorio reforzado: los controladores y servicios no ejecutan SQL directamente.
+- Documento `DOCUMENTACION_AVANZADOS_BACKEND.md` con el detalle de las mejoras y pruebas.
+- Ajuste del frontend a `vite ^5.0.0` para resolver el conflicto de dependencias con el plugin de Svelte.
+

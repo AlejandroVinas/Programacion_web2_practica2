@@ -1,8 +1,8 @@
-import sqlite3
 from typing import Annotated
 
 import jwt
 from fastapi import Depends, Header
+from sqlalchemy.orm import Session
 
 from app.core.exceptions import ForbiddenError, UnauthorizedError
 from app.core.security import decode_access_token
@@ -12,7 +12,7 @@ from app.repositories.user_repository import UserRepository
 
 def get_current_user(
     authorization: Annotated[str | None, Header()] = None,
-    conn: sqlite3.Connection = Depends(db_session),
+    session: Session = Depends(db_session),
 ) -> dict:
     if not authorization or not authorization.startswith("Bearer "):
         raise UnauthorizedError("Token requerido")
@@ -29,7 +29,7 @@ def get_current_user(
     if not user_id:
         raise ForbiddenError("Token inválido")
 
-    user = UserRepository(conn).find_by_id(user_id)
+    user = UserRepository(session).find_by_id(user_id)
     if not user:
         raise UnauthorizedError("Usuario no encontrado")
     return user
