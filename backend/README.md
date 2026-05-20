@@ -1,93 +1,121 @@
-# Backend Python - Práctica 2 PW2
+# Backend FastAPI - Práctica 2 PW2
 
-Backend nuevo desarrollado con **FastAPI** para sustituir al backend original de Node/Express manteniendo el contrato que ya consume el frontend Svelte 5.
+Backend desarrollado en **Python + FastAPI** para sustituir al backend original y mantener la compatibilidad con el frontend Svelte 5.
 
 ## Requisitos
 
-- Python 3.11 o superior
-- pip
+- Python 3.11 o superior.
+- pip.
 
-## Instalación
+## Instalación en Windows / PowerShell
 
-```bash
+Desde la raíz del proyecto:
+
+```powershell
 cd backend
 python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\\Scripts\\activate
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-cp .env.example .env
+Copy-Item .env.example .env -Force
 python seed.py
 python run.py
 ```
 
-El backend queda disponible en `http://localhost:3000` y la documentación automática en `http://localhost:3000/docs`.
+Si PowerShell bloquea la activación del entorno:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+.\.venv\Scripts\Activate.ps1
+```
+
+Servidor:
+
+```text
+http://localhost:3000
+```
+
+Documentación automática:
+
+```text
+http://localhost:3000/docs
+```
 
 ## Usuarios de prueba
 
 | Usuario | Contraseña | Rol |
 |---|---|---|
-| admin | admin123 | admin |
-| user | user123 | user |
+| `admin` | `admin123` | admin |
+| `user` | `user123` | user |
 
-## Endpoints mantenidos para el frontend
+## Variables de entorno
 
-Todos los endpoints principales se mantienen bajo `/api`, igual que en la práctica anterior:
+Archivo `.env.example`:
 
-| Método | Endpoint | Acceso | Uso |
-|---|---|---|---|
-| POST | `/api/login` | Público | Devuelve `{ token }` con JWT |
-| POST | `/api/register` | Público | Registra usuario con rol `user` |
-| GET | `/api/productos` | Usuario autenticado | Lista productos. Soporta `?name=` |
-| POST | `/api/productos` | Admin | Crea producto con `multipart/form-data` |
-| PUT | `/api/productos/{id}` | Admin | Edita producto |
-| DELETE | `/api/productos/{id}` | Admin | Elimina producto |
-| GET | `/api/users` | Admin | Lista usuarios |
-| POST | `/api/users` | Admin | Crea usuario |
-| PUT | `/api/users/{id}` | Admin | Edita usuario/rol |
-| DELETE | `/api/users/{id}` | Admin | Elimina usuario |
-
-## Estructura por capas
-
-```text
-backend/
-├── app/
-│   ├── main.py                 # Configuración FastAPI, CORS, rutas y errores globales
-│   ├── database.py             # Conexión e inicialización SQLite
-│   ├── core/                   # Configuración, seguridad JWT y excepciones
-│   ├── dependencies/           # Dependencias de autenticación y rol admin
-│   ├── routers/                # Definición de rutas HTTP
-│   ├── controllers/            # Manejo de petición/respuesta
-│   ├── services/               # Lógica de negocio
-│   ├── repositories/           # Acceso a datos SQLite
-│   └── schemas/                # Esquemas Pydantic de entrada/salida
-├── uploads/                    # Imágenes subidas
-├── data/                       # Base de datos SQLite generada localmente
-├── requirements.txt
-├── seed.py
-└── run.py
+```env
+PORT=3000
+JWT_SECRET=cambia_este_secreto_en_produccion_minimo_32_bytes
+JWT_EXPIRES_MINUTES=60
+DATABASE_URL=data/app.db
+UPLOAD_DIR=uploads
+FRONTEND_ORIGIN=http://localhost:5173
 ```
 
-## JWT y roles
+Para desarrollo local basta con copiarlo a `.env`.
 
-- El login genera un JWT firmado con `id`, `username` y `role`, que es justo lo que decodifica el frontend.
-- Las rutas privadas leen `Authorization: Bearer <token>`.
-- Si no hay token se responde `401`.
-- Si el token es inválido/expirado o el usuario no es admin se responde `403`.
+## Endpoints
 
-## Base de datos
+| Método | Endpoint | Acceso | Descripción |
+|---|---|---|---|
+| `POST` | `/api/login` | Público | Devuelve JWT |
+| `POST` | `/api/register` | Público | Registra usuario normal |
+| `GET` | `/api/productos` | Usuario autenticado | Lista productos |
+| `POST` | `/api/productos` | Admin | Crea producto |
+| `PUT` | `/api/productos/{id}` | Admin | Edita producto |
+| `DELETE` | `/api/productos/{id}` | Admin | Elimina producto |
+| `GET` | `/api/users` | Admin | Lista usuarios |
+| `POST` | `/api/users` | Admin | Crea usuario |
+| `PUT` | `/api/users/{id}` | Admin | Edita usuario |
+| `DELETE` | `/api/users/{id}` | Admin | Elimina usuario |
+| `GET` | `/health` | Público | Comprueba que la API está activa |
 
-Se usa SQLite mediante SQLAlchemy ORM para evitar depender de MongoDB/Redis y facilitar la ejecución local. La capa de repositorios encapsula el acceso a datos con SQLAlchemy, así que controladores y servicios no acceden directamente a la base de datos.
+## Arquitectura
+
+```text
+routers -> controllers -> services -> repositories -> models/database
+```
+
+- `routers/`: rutas HTTP.
+- `controllers/`: adaptación HTTP y dependencias.
+- `services/`: lógica de negocio.
+- `repositories/`: consultas y persistencia con SQLAlchemy.
+- `schemas/`: validaciones Pydantic.
+- `dependencies/`: autenticación y autorización.
+- `core/`: configuración, seguridad y excepciones.
 
 ## Funcionalidades avanzadas
 
-### Validación estricta
+- Validación estricta con Pydantic.
+- Errores `422` estructurados.
+- Manejo global de excepciones.
+- SQLite real como persistencia local.
+- SQLAlchemy ORM.
+- Patrón repositorio.
+- Validación de imágenes subidas.
 
-Los esquemas Pydantic de `app/schemas` validan longitudes, formatos, rangos numéricos y roles permitidos. En productos, la creación con `multipart/form-data` también valida `nombre`, `precio`, `activo` e imagen. Los errores se devuelven como `422 Unprocessable Entity` con una estructura JSON uniforme.
+## Base de datos
 
-### Manejo global de errores
+La base de datos se genera localmente en:
 
-`app/main.py` define manejadores para `AppError`, `RequestValidationError`, `SQLAlchemyError` y errores HTTP generales. Así, los errores de lógica de negocio, validación y base de datos no llegan al frontend como trazas internas, sino como respuestas HTTP limpias.
+```text
+backend/data/app.db
+```
 
-### ORM y patrón repositorio
+No debe subirse a GitHub. Está ignorada en `.gitignore`.
 
-`app/models.py` contiene los modelos ORM `UserModel` y `ProductModel`. `app/database.py` crea el motor, sesiones y tablas. Los repositorios `UserRepository` y `ProductRepository` son la única capa que trabaja con SQLAlchemy.
+Para reiniciarla:
 
+```powershell
+Remove-Item -Force data\app.db -ErrorAction SilentlyContinue
+python seed.py
+python run.py
+```

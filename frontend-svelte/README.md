@@ -1,97 +1,104 @@
-# PW2 Frontend — Svelte 5
+# Frontend Svelte 5 - Práctica 2 PW2
 
-Frontend SPA para la práctica PW2, construido con **Vite + Svelte 5**.
+Frontend SPA construido con **Svelte 5 + Vite**. Consume el backend Python/FastAPI de la Práctica 2 en `http://localhost:3000`.
 
 ## Requisitos previos
 
-- Node.js 18+
-- Backend corriendo en `http://localhost:3000`
+- Node.js 18 o superior.
+- Backend funcionando en `http://localhost:3000`.
 
-## Instalación y arranque
+## Instalación y ejecución
 
-### 1. Backend
+Desde la raíz del proyecto:
 
-```bash
-cd backend
-cp .env.example .env
-# Editar .env con tu MONGO_URI y JWT_SECRET
-npm install
-npm run seed   # Crea usuarios admin/user
-npm run dev
-```
-
-### 2. Frontend
-
-```bash
+```powershell
 cd frontend-svelte
 npm install
 npm run dev
 ```
 
-Accede en: `http://localhost:5173`
+Abrir la URL indicada por Vite, normalmente:
 
-Usuarios de prueba:
-- `admin` / `admin123` → rol admin (CRUD completo)
-- `user` / `user123` → rol user (solo lectura)
-
----
-
-## Estructura del proyecto
-
-```
-src/
-├── stores/
-│   └── auth.svelte.js     # Estado global con $state
-├── services/
-│   └── api.js             # Llamadas al backend
-├── components/
-│   ├── ProductCard.svelte  # Tarjeta de producto ($props + callbacks)
-│   ├── ProductForm.svelte  # Formulario crear/editar ($props + callbacks)
-│   ├── ProductDetail.svelte# Modal detalle ($props)
-│   └── Toast.svelte        # Notificación global ($props)
-├── pages/
-│   ├── Login.svelte        # Pantalla de login
-│   ├── Products.svelte     # Listado + CRUD productos
-│   └── Profile.svelte      # Perfil del usuario
-└── App.svelte              # Raíz: enrutamiento + navbar
+```text
+http://localhost:5173
 ```
 
----
+## Backend necesario
 
-## Runes de Svelte 5 utilizadas
+Antes de iniciar sesión, debe estar arrancado el backend:
 
-| Rune | Dónde | Para qué |
+```powershell
+cd backend
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .env.example .env -Force
+python seed.py
+python run.py
+```
+
+Documentación de la API:
+
+```text
+http://localhost:3000/docs
+```
+
+## Usuarios de prueba
+
+| Usuario | Contraseña | Rol |
 |---|---|---|
-| `$state()` | `auth.svelte.js`, `Login`, `Products`, `Profile`, `App`, `ProductForm` | Estado reactivo: token/user, formularios, lista de productos, página actual, toast |
-| `$derived()` | `Products.svelte` (filteredProducts, isAdmin), `App.svelte` (user), `Profile.svelte` (user) | Valores calculados sin efecto secundario |
-| `$effect()` | `Products.svelte` (carga inicial), `App.svelte` (redirección si no autenticado) | Side-effects: fetch al montar, guardia de ruta |
-| `$props()` | `ProductCard`, `ProductForm`, `ProductDetail`, `Toast`, `Products`, `Profile`, `Login` | Props tipadas en todos los componentes |
+| `admin` | `admin123` | admin |
+| `user` | `user123` | user |
 
----
+## Estructura del frontend
 
-## Endpoints del backend utilizados
+```text
+src/
+├── components/
+│   ├── ProductCard.svelte
+│   ├── ProductDetail.svelte
+│   ├── ProductForm.svelte
+│   ├── Toast.svelte
+│   └── UserRow.svelte
+├── pages/
+│   ├── Login.svelte
+│   ├── Products.svelte
+│   ├── Profile.svelte
+│   ├── Register.svelte
+│   └── Users.svelte
+├── services/
+│   └── api.js
+├── stores/
+│   └── auth.svelte.js
+├── App.svelte
+└── main.js
+```
 
-| Método | Ruta | Auth | Descripción |
-|---|---|---|---|
-| POST | `/api/login` | No | Login, devuelve JWT |
-| GET | `/api/productos` | No | Listado (filtro por nombre) |
-| POST | `/api/productos` | Admin | Crear producto (multipart) |
-| PUT | `/api/productos/:id` | Admin | Editar producto |
-| DELETE | `/api/productos/:id` | Admin | Eliminar producto |
+## Endpoints consumidos
 
----
+| Método | Ruta | Acceso |
+|---|---|---|
+| `POST` | `/api/login` | Público |
+| `POST` | `/api/register` | Público |
+| `GET` | `/api/productos` | Usuario autenticado |
+| `POST` | `/api/productos` | Admin |
+| `PUT` | `/api/productos/{id}` | Admin |
+| `DELETE` | `/api/productos/{id}` | Admin |
+| `GET` | `/api/users` | Admin |
+| `POST` | `/api/users` | Admin |
+| `PUT` | `/api/users/{id}` | Admin |
+| `DELETE` | `/api/users/{id}` | Admin |
 
-## Funcionalidades implementadas (requisitos mínimos)
+## Funcionalidades principales
 
-- ✅ Proyecto Vite + Svelte 5 con organización en carpetas
-- ✅ Login con JWT, gestión de errores, token en memoria
-- ✅ Rutas privadas: sin token no se ven pantallas privadas
-- ✅ Listado de productos con nombre y precio
-- ✅ Detalle de producto en modal
-- ✅ Creación de producto con imagen (admin)
-- ✅ Edición de producto (admin)
-- ✅ Borrado con confirmación (admin)
-- ✅ Navegación SPA: Login → Productos → Perfil
-- ✅ Pantalla activa resaltada en la barra de navegación
-- ✅ Diseño responsive (mobile-friendly)
-- ✅ Skeletons de carga, toasts de éxito/error
+- Login y registro.
+- Almacenamiento del token JWT.
+- Navegación SPA.
+- Listado de productos.
+- CRUD de productos para admin.
+- Gestión de usuarios para admin.
+- Vista de perfil.
+- Mensajes de éxito/error mediante toast.
+
+## Dependencias importantes
+
+La versión de Vite se mantiene en `^5.0.0` porque es compatible con `@sveltejs/vite-plugin-svelte ^4.0.0`.
