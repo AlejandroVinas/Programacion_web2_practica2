@@ -1,238 +1,313 @@
-# Programación Web 2 - Práctica 2
+# Práctica 2 - Desarrollo de Backend con Python, Arquitectura Limpia e Inteligencia Artificial
 
-Proyecto completo de la Práctica 2: **frontend Svelte 5** conectado a un nuevo **backend Python con FastAPI**, manteniendo el contrato de API de la práctica anterior y añadiendo funcionalidades avanzadas de backend.
+Repositorio de la Práctica 2 de Programación Web 2.
 
-## 1. Tecnologías utilizadas
+El objetivo principal de esta práctica es sustituir el backend original por un nuevo backend desarrollado en Python, manteniendo la compatibilidad con el frontend en Svelte 5 desarrollado previamente.
 
-| Parte | Tecnología |
-|---|---|
-| Frontend | Svelte 5 + Vite |
-| Backend | Python 3.11+ + FastAPI |
-| Autenticación | JWT |
-| Base de datos | SQLite |
-| ORM | SQLAlchemy |
-| Validación | Pydantic / FastAPI |
-| Documentación API | Swagger automático de FastAPI |
+La versión actual del proyecto corresponde a la **v2 avanzada**, que incluye:
 
-## 2. Estructura general
+- Backend en Python con FastAPI.
+- Arquitectura limpia separada por capas.
+- Autenticación mediante JWT.
+- Control de roles `user` y `admin`.
+- CRUD completo de productos.
+- CRUD completo de usuarios.
+- Validación estricta de datos con Pydantic.
+- Manejo global de excepciones.
+- Persistencia real con SQLite y SQLAlchemy ORM.
+- Patrón repositorio.
+- Frontend en Svelte 5 conectado al nuevo backend.
+- Documentación del uso de Inteligencia Artificial durante el desarrollo.
+
+---
+
+## Estructura general del proyecto
 
 ```text
 Programacion_web2_practica2/
+│
 ├── backend/
 │   ├── app/
-│   │   ├── controllers/      # Reciben la petición HTTP y llaman a servicios
-│   │   ├── core/             # Configuración, seguridad JWT y excepciones
-│   │   ├── dependencies/     # Dependencias de autenticación y permisos
-│   │   ├── repositories/     # Acceso a datos con SQLAlchemy
-│   │   ├── routers/          # Definición de rutas FastAPI
-│   │   ├── schemas/          # Validaciones Pydantic
-│   │   ├── services/         # Lógica de negocio
-│   │   ├── database.py       # Motor, sesiones e inicialización de BD
-│   │   ├── main.py           # App FastAPI, CORS, rutas y errores globales
-│   │   └── models.py         # Modelos ORM
-│   ├── data/                 # SQLite local generado en ejecución
-│   ├── uploads/              # Imágenes locales subidas por usuarios
-│   ├── .env.example          # Variables de entorno de ejemplo
-│   ├── requirements.txt      # Dependencias Python
-│   ├── run.py                # Arranque del servidor
-│   └── seed.py               # Inicialización de datos de prueba
+│   │   ├── controllers/
+│   │   ├── core/
+│   │   ├── dependencies/
+│   │   ├── repositories/
+│   │   ├── routers/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   ├── database.py
+│   │   ├── main.py
+│   │   └── models.py
+│   │
+│   ├── data/
+│   │   └── .gitkeep
+│   │
+│   ├── uploads/
+│   │   └── .gitkeep
+│   │
+│   ├── .env.example
+│   ├── requirements.txt
+│   ├── run.py
+│   ├── seed.py
+│   └── README.md
+│
 ├── frontend-svelte/
 │   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── stores/
-│   │   ├── App.svelte
-│   │   └── main.js
 │   ├── package.json
-│   └── vite.config.js
+│   ├── package-lock.json
+│   ├── vite.config.js
+│   └── README.md
+│
 ├── CHECKLIST_ENTREGA_COMPLETA.md
 ├── CHECKLIST_REQUISITOS_MINIMOS.md
 ├── CHECKLIST_FUNCIONALIDADES_AVANZADAS.md
 ├── DOCUMENTACION_AVANZADOS_BACKEND.md
 ├── MEMORIA_USO_IA.md
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
-## 3. Requisitos previos
+---
 
-Antes de ejecutar el proyecto necesitas tener instalado:
+## Versiones del proyecto
 
-- **Python 3.11 o superior**.
-- **Node.js 18 o superior**.
-- **Git**.
-- **Visual Studio Code**, recomendado para abrir dos terminales integradas.
+El repositorio conserva dos versiones principales:
 
-Para comprobar versiones:
+```text
+v1-base              Versión mínima original.
+v2-avanzado-backend  Rama de desarrollo de la versión avanzada.
+main                 Versión final avanzada presentada.
+```
 
-```powershell
+Etiquetas disponibles:
+
+```text
+v1  Versión mínima.
+v2  Versión avanzada final.
+```
+
+---
+
+## Tecnologías utilizadas
+
+### Backend
+
+- Python 3.11
+- FastAPI
+- Uvicorn
+- Pydantic
+- SQLAlchemy
+- SQLite
+- JWT con `python-jose`
+- Passlib con bcrypt
+
+### Frontend
+
+- Svelte 5
+- Vite
+- JavaScript
+- HTML/CSS
+
+---
+
+## Requisitos previos
+
+Antes de ejecutar el proyecto hay que tener instalado:
+
+- Python 3.11 o superior.
+- Node.js.
+- npm.
+- Git.
+
+Para comprobarlo:
+
+```bash
 python --version
 node --version
 npm --version
 git --version
 ```
 
-## 4. Ejecución del backend
+---
 
-Abre una terminal en Visual Studio Code desde la raíz del proyecto.
+## Ejecución del backend
 
-### 4.1. Entrar en la rama avanzada
+Abre una terminal en la raíz del proyecto:
 
-```powershell
-git switch v2-avanzado-backend
+```bash
+cd "C:\Users\aleja\OneDrive\Escritorio\Nueva carpeta\Programacion_web2_practica2"
 ```
 
-### 4.2. Entrar en la carpeta backend
+Entra en la carpeta del backend:
 
-```powershell
+```bash
 cd backend
 ```
 
-### 4.3. Crear entorno virtual
+Crea el entorno virtual:
 
-Solo es necesario la primera vez:
-
-```powershell
+```bash
 python -m venv .venv
 ```
 
-### 4.4. Activar entorno virtual en PowerShell
+Activa el entorno virtual.
+
+En PowerShell:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Si PowerShell bloquea la activación, ejecutar:
+En CMD:
+
+```cmd
+.venv\Scripts\activate
+```
+
+Si PowerShell bloquea la ejecución de scripts, ejecutar:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-.\.venv\Scripts\Activate.ps1
 ```
 
-Cuando esté activado aparecerá `(.venv)` al inicio de la terminal.
+Instala las dependencias:
 
-### 4.5. Instalar dependencias Python
-
-```powershell
+```bash
 pip install -r requirements.txt
 ```
 
-### 4.6. Crear archivo `.env`
+Copia el archivo de variables de entorno.
+
+En PowerShell:
 
 ```powershell
 Copy-Item .env.example .env -Force
 ```
 
-El archivo `.env.example` incluido contiene valores válidos para desarrollo local:
+En CMD:
 
-```env
-PORT=3000
-JWT_SECRET=cambia_este_secreto_en_produccion_minimo_32_bytes
-JWT_EXPIRES_MINUTES=60
-DATABASE_URL=data/app.db
-UPLOAD_DIR=uploads
-FRONTEND_ORIGIN=http://localhost:5173
+```cmd
+copy .env.example .env
 ```
 
-### 4.7. Crear base de datos y datos iniciales
+Carga datos iniciales:
 
-```powershell
+```bash
 python seed.py
 ```
 
-También se inicializan tablas automáticamente al arrancar el backend.
+Arranca el backend:
 
-### 4.8. Arrancar backend
-
-```powershell
+```bash
 python run.py
 ```
 
-Si todo va bien, se verá algo parecido a:
+El backend quedará disponible en:
 
 ```text
-Uvicorn running on http://0.0.0.0:3000
+http://localhost:3000
 ```
 
-Abrir en navegador:
+La documentación automática de FastAPI estará en:
 
 ```text
 http://localhost:3000/docs
 ```
 
-La URL `/docs` muestra la documentación interactiva de FastAPI.
+---
 
-## 5. Ejecución del frontend
+## Ejecución del frontend
 
-Deja el backend abierto en una terminal. Abre una **segunda terminal** en Visual Studio Code.
+Abre una segunda terminal y entra en la carpeta del frontend:
 
-### 5.1. Entrar en la carpeta frontend
-
-```powershell
+```bash
 cd "C:\Users\aleja\OneDrive\Escritorio\Nueva carpeta\Programacion_web2_practica2\frontend-svelte"
 ```
 
-O, si ya estás en la raíz del proyecto:
+Instala dependencias:
 
-```powershell
-cd frontend-svelte
-```
-
-### 5.2. Instalar dependencias Node
-
-```powershell
+```bash
 npm install
 ```
 
-### 5.3. Arrancar frontend
+Ejecuta el servidor de desarrollo:
 
-```powershell
+```bash
 npm run dev
 ```
 
-Abrir en navegador la URL que indique Vite, normalmente:
+El frontend quedará disponible normalmente en:
 
 ```text
 http://localhost:5173
 ```
 
-## 6. Usuarios de prueba
+---
 
-| Usuario | Contraseña | Rol | Permisos |
-|---|---|---|---|
-| `admin` | `admin123` | admin | CRUD completo de productos y usuarios |
-| `user` | `user123` | user | Puede iniciar sesión y consultar productos |
+## Usuarios de prueba
 
-## 7. URLs principales
+El archivo `seed.py` crea usuarios iniciales para probar la aplicación.
 
-| Servicio | URL |
-|---|---|
-| Frontend | `http://localhost:5173` |
-| Backend | `http://localhost:3000` |
-| Swagger/FastAPI docs | `http://localhost:3000/docs` |
-| Healthcheck | `http://localhost:3000/health` |
-| Imágenes subidas | `http://localhost:3000/uploads/<archivo>` |
+### Usuario administrador
 
-## 8. Endpoints principales
+```text
+Usuario: admin
+Contraseña: admin123
+Rol: admin
+```
 
-| Método | Endpoint | Acceso | Descripción |
-|---|---|---|---|
-| `POST` | `/api/login` | Público | Iniciar sesión y obtener JWT |
-| `POST` | `/api/register` | Público | Registrar usuario con rol `user` |
-| `GET` | `/api/productos` | Usuario autenticado | Listar productos; permite filtro `?name=` |
-| `POST` | `/api/productos` | Admin | Crear producto con `multipart/form-data` |
-| `PUT` | `/api/productos/{id}` | Admin | Editar producto |
-| `DELETE` | `/api/productos/{id}` | Admin | Eliminar producto |
-| `GET` | `/api/users` | Admin | Listar usuarios |
-| `POST` | `/api/users` | Admin | Crear usuario |
-| `PUT` | `/api/users/{id}` | Admin | Editar usuario |
-| `DELETE` | `/api/users/{id}` | Admin | Eliminar usuario |
+### Usuario normal
 
-## 9. Compatibilidad con el frontend
+```text
+Usuario: user
+Contraseña: user123
+Rol: user
+```
 
-El backend conserva los formatos que espera Svelte:
+---
 
-### Login
+## Endpoints principales del backend
+
+### Autenticación
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/api/login` | Iniciar sesión y obtener token JWT |
+| POST | `/api/register` | Registrar usuario |
+
+### Productos
+
+| Método | Endpoint | Permiso |
+|---|---|---|
+| GET | `/api/productos` | Usuario autenticado |
+| GET | `/api/productos/{id}` | Usuario autenticado |
+| POST | `/api/productos` | Admin |
+| PUT | `/api/productos/{id}` | Admin |
+| DELETE | `/api/productos/{id}` | Admin |
+
+### Usuarios
+
+| Método | Endpoint | Permiso |
+|---|---|---|
+| GET | `/api/users` | Admin |
+| GET | `/api/users/{id}` | Admin |
+| POST | `/api/users` | Admin |
+| PUT | `/api/users/{id}` | Admin |
+| DELETE | `/api/users/{id}` | Admin |
+
+### Salud del backend
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/health` | Comprueba que el backend está activo |
+
+---
+
+## Autenticación y roles
+
+El backend utiliza JWT para autenticar usuarios.
+
+Al iniciar sesión correctamente en `/api/login`, el backend devuelve un token JWT con información del usuario:
 
 ```json
 {
@@ -240,152 +315,348 @@ El backend conserva los formatos que espera Svelte:
 }
 ```
 
-### Producto
+El token incluye datos como:
 
 ```json
 {
-  "_id": "1",
-  "nombre": "Camiseta básica",
-  "precio": 19.99,
-  "imagen": null,
-  "activo": true
-}
-```
-
-### Usuario
-
-```json
-{
-  "_id": "1",
+  "id": 1,
   "username": "admin",
   "role": "admin"
 }
 ```
 
-## 10. Funcionalidades implementadas
+Las rutas protegidas comprueban:
 
-### Requisitos mínimos
+- Si el token existe.
+- Si el token es válido.
+- Si el usuario tiene permisos suficientes.
+- Si el rol es `admin` cuando la operación lo requiere.
 
-- Backend nuevo en Python con FastAPI.
-- Separación por capas: routers, controllers, services, repositories, schemas, dependencies y core.
-- JWT para login y rutas privadas.
-- Roles `admin` y `user`.
-- Endpoints compatibles con el frontend Svelte.
-- Rutas privadas con errores `401` y `403`.
+Errores esperados:
 
-### Funcionalidades avanzadas
+```text
+401 Unauthorized
+403 Forbidden
+422 Unprocessable Entity
+404 Not Found
+```
 
-- Validación estricta con Pydantic.
-- Errores `422` estructurados.
-- Manejo global de excepciones.
-- Persistencia real con SQLite.
-- ORM SQLAlchemy.
-- Patrón repositorio aplicado.
-- Validación de imágenes subidas por extensión, tipo y tamaño.
+---
 
-## 11. Comandos rápidos
+## Arquitectura del backend
+
+El backend está dividido en capas para cumplir con una arquitectura limpia y evitar que toda la lógica esté concentrada en un único archivo.
+
+### `routers`
+
+Definen las rutas HTTP.
+
+Ejemplo:
+
+```text
+backend/app/routers/product_router.py
+```
+
+### `controllers`
+
+Reciben la petición, llaman a los servicios y devuelven la respuesta.
+
+```text
+backend/app/controllers/product_controller.py
+```
+
+### `services`
+
+Contienen la lógica de negocio.
+
+```text
+backend/app/services/product_service.py
+```
+
+### `repositories`
+
+Gestionan el acceso a la base de datos.
+
+```text
+backend/app/repositories/product_repository.py
+```
+
+### `schemas`
+
+Definen validaciones y estructuras de entrada/salida con Pydantic.
+
+```text
+backend/app/schemas/product_schema.py
+```
+
+### `models`
+
+Define los modelos ORM con SQLAlchemy.
+
+```text
+backend/app/models.py
+```
+
+### `dependencies`
+
+Contiene dependencias reutilizables, como autenticación y autorización.
+
+```text
+backend/app/dependencies/auth.py
+```
+
+### `core`
+
+Contiene configuración, seguridad y excepciones.
+
+```text
+backend/app/core/
+```
+
+---
+
+## Base de datos
+
+La aplicación utiliza SQLite como base de datos real mediante SQLAlchemy ORM.
+
+La base de datos se genera localmente en:
+
+```text
+backend/data/app.db
+```
+
+Este archivo no se sube al repositorio porque está incluido en `.gitignore`.
+
+Para recrearlo:
+
+```bash
+cd backend
+python seed.py
+```
+
+---
+
+## Validaciones avanzadas
+
+La versión avanzada incluye validación estricta con Pydantic.
+
+Ejemplos de validaciones:
+
+- El nombre de producto es obligatorio.
+- El precio debe ser mayor o igual que 0.
+- El rol de usuario solo puede ser `user` o `admin`.
+- El username no puede estar vacío.
+- La contraseña debe cumplir una longitud mínima.
+- Los datos inválidos devuelven error `422`.
+
+Ejemplo de error:
+
+```json
+{
+  "error": "Validation error",
+  "message": "Los datos enviados no son válidos",
+  "details": []
+}
+```
+
+---
+
+## Manejo global de excepciones
+
+El backend centraliza los errores para devolver respuestas limpias y consistentes.
+
+Se gestionan, entre otros:
+
+- Errores HTTP.
+- Errores de validación.
+- Errores de lógica de negocio.
+- Errores de base de datos.
+- Errores inesperados.
+
+Esto evita mostrar trazas internas al usuario y mejora la seguridad del backend.
+
+---
+
+## Documentación incluida
+
+El proyecto incluye varios documentos de apoyo:
+
+```text
+CHECKLIST_ENTREGA_COMPLETA.md
+```
+
+Checklist general de la entrega.
+
+```text
+CHECKLIST_REQUISITOS_MINIMOS.md
+```
+
+Comprobación de requisitos mínimos.
+
+```text
+CHECKLIST_FUNCIONALIDADES_AVANZADAS.md
+```
+
+Comprobación de funcionalidades avanzadas.
+
+```text
+DOCUMENTACION_AVANZADOS_BACKEND.md
+```
+
+Explicación técnica de las mejoras avanzadas.
+
+```text
+MEMORIA_USO_IA.md
+```
+
+Memoria del uso de Inteligencia Artificial durante el desarrollo.
+
+---
+
+## Uso de Inteligencia Artificial
+
+Durante el desarrollo se ha utilizado IA como apoyo para:
+
+- Diseñar la arquitectura por capas.
+- Refactorizar el backend hacia FastAPI.
+- Implementar autenticación JWT.
+- Mejorar validaciones con Pydantic.
+- Revisar errores de compatibilidad con el frontend.
+- Documentar decisiones técnicas.
+
+El uso de IA está documentado en:
+
+```text
+MEMORIA_USO_IA.md
+```
+
+Este documento incluye:
+
+- Prompts utilizados.
+- Iteraciones realizadas.
+- Errores o alucinaciones detectadas.
+- Correcciones manuales aplicadas.
+
+---
+
+## Comprobación rápida
 
 ### Backend
 
-```powershell
-cd "C:\Users\aleja\OneDrive\Escritorio\Nueva carpeta\Programacion_web2_practica2"
-git switch v2-avanzado-backend
+```bash
 cd backend
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-Copy-Item .env.example .env -Force
-python seed.py
 python run.py
 ```
 
-### Frontend
-
-```powershell
-cd "C:\Users\aleja\OneDrive\Escritorio\Nueva carpeta\Programacion_web2_practica2\frontend-svelte"
-npm install
-npm run dev
-```
-
-## 12. Problemas frecuentes
-
-### `Could not open requirements file`
-
-Significa que estás en la carpeta equivocada. Debes estar dentro de `backend`:
-
-```powershell
-cd backend
-pip install -r requirements.txt
-```
-
-### `vite no se reconoce como comando`
-
-Normalmente pasa si `npm install` no se ejecutó correctamente. Solución:
-
-```powershell
-cd frontend-svelte
-npm install
-npm run dev
-```
-
-### Error de permisos al activar `.venv`
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-.\.venv\Scripts\Activate.ps1
-```
-
-### `0.0.0.0:3000` no abre en navegador
-
-En navegador usa:
+Abrir:
 
 ```text
 http://localhost:3000/docs
 ```
 
-No uses `http://0.0.0.0:3000`.
+### Frontend
 
-### Rehacer base de datos local
-
-Si quieres reiniciar datos locales:
-
-```powershell
-cd backend
-Remove-Item -Force data\app.db -ErrorAction SilentlyContinue
-python seed.py
-python run.py
+```bash
+cd frontend-svelte
+npm run dev
 ```
 
-## 13. Archivos que no se deben subir a GitHub
-
-El `.gitignore` evita subir archivos generados localmente:
+Abrir:
 
 ```text
-backend/.venv/
+http://localhost:5173
+```
+
+### Login de prueba
+
+```text
+admin / admin123
+```
+
+---
+
+## Subida a GitHub
+
+Para subir cambios:
+
+```bash
+git status
+git add .
+git commit -m "mensaje del cambio"
+git push origin main
+```
+
+Para consultar ramas:
+
+```bash
+git branch
+```
+
+Para cambiar de rama:
+
+```bash
+git switch nombre-rama
+```
+
+---
+
+## Archivos ignorados
+
+El proyecto no sube al repositorio archivos generados localmente como:
+
+```text
 backend/.env
-backend/data/*.db
+backend/.venv/
+backend/data/app.db
 backend/uploads/*
 frontend-svelte/node_modules/
 frontend-svelte/dist/
 __pycache__/
 ```
 
-Se mantienen las carpetas `backend/data/` y `backend/uploads/` gracias a sus archivos `.gitkeep`.
+Esto evita subir:
 
-## 14. Entrega recomendada
+- Variables privadas.
+- Bases de datos locales.
+- Entornos virtuales.
+- Dependencias instaladas.
+- Archivos temporales.
+- Imágenes subidas durante pruebas.
 
-Para entregar la versión avanzada, indicar:
+---
+
+## Estado final del proyecto
+
+La versión final presentada corresponde a:
 
 ```text
-Repositorio: https://github.com/AlejandroVinas/Programacion_web2_practica2
-Rama: v2-avanzado-backend
-Etiqueta: v2
+main
 ```
 
-Documentos incluidos:
+También se conserva:
 
-- `README.md`: ejecución general del proyecto.
-- `CHECKLIST_ENTREGA_COMPLETA.md`: checklist global de requisitos.
-- `CHECKLIST_REQUISITOS_MINIMOS.md`: checklist del bloque mínimo.
-- `CHECKLIST_FUNCIONALIDADES_AVANZADAS.md`: checklist del bloque avanzado.
-- `DOCUMENTACION_AVANZADOS_BACKEND.md`: explicación técnica del backend avanzado.
-- `MEMORIA_USO_IA.md`: memoria del uso de IA durante el desarrollo.
+```text
+v1-base
+```
+
+como versión mínima original.
+
+La versión avanzada también está disponible como:
+
+```text
+v2-avanzado-backend
+```
+
+y como etiqueta:
+
+```text
+v2
+```
+
+---
+
+## Autor
+
+Proyecto desarrollado para la asignatura de Programación Web 2.
+
+Alumno: Alejandro Viñas
