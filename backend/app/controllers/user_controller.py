@@ -1,5 +1,5 @@
-import sqlite3
 from fastapi import Depends
+from sqlalchemy.orm import Session
 
 from app.database import db_session
 from app.dependencies.auth import require_admin
@@ -8,8 +8,8 @@ from app.schemas.user_schema import UserCreate, UserUpdate
 from app.services.user_service import UserService
 
 
-def _service(conn: sqlite3.Connection = Depends(db_session)) -> UserService:
-    return UserService(UserRepository(conn))
+def _service(session: Session = Depends(db_session)) -> UserService:
+    return UserService(UserRepository(session))
 
 
 def get_users(

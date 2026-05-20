@@ -1,69 +1,70 @@
-import sqlite3
 from pathlib import Path
 from typing import Iterator
+
+from sqlalchemy import create_engine, select
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, sessionmaker
+
 from app.core.config import get_settings
+from app.core.security import hash_password
+from app.models import Base, ProductModel, UserModel
 
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK(role IN ('admin', 'user')) DEFAULT 'user'
-);
+def _build_sqlalchemy_url(raw_database_url: str) -> str:
+    """Acepta tanto rutas sencillas como URLs SQLAlchemy completas."""
+    if "://" in raw_database_url:
+        if raw_database_url.startswith("sqlite:///"):
+            db_path = Path(raw_database_url.replace("sqlite:///", "", 1))
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+        return raw_database_url
 
-CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL,
-    precio REAL NOT NULL,
-    imagen TEXT,
-    activo INTEGER NOT NULL DEFAULT 1
-);
-"""
-
-
-def get_connection() -> sqlite3.Connection:
-    settings = get_settings()
-    db_path: Path = settings.database_path
+    db_path = Path(raw_database_url)
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    return f"sqlite:///{db_path.as_posix()}"
+
+
+settings = get_settings()
+SQLALCHEMY_DATABASE_URL = _build_sqlalchemy_url(settings.database_url)
+
+engine: Engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {},
+    future=True,
+)
+
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
 
 
 def init_db() -> None:
-    """Crea las tablas necesarias y carga datos mínimos si la BD está vacía."""
-    from app.core.security import hash_password
+    """Crea las tablas ORM y carga datos mínimos si la BD está vacía."""
+    Base.metadata.create_all(bind=engine)
 
-    with get_connection() as conn:
-        conn.executescript(SCHEMA)
-        users_count = conn.execute("SELECT COUNT(*) AS total FROM users").fetchone()["total"]
-        if users_count == 0:
-            conn.executemany(
-                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+    with SessionLocal() as session:
+        users_count = session.scalar(select(UserModel).limit(1))
+        if users_count is None:
+            session.add_all(
                 [
-                    ("admin", hash_password("admin123"), "admin"),
-                    ("user", hash_password("user123"), "user"),
-                ],
+                    UserModel(username="admin", password_hash=hash_password("admin123"), role="admin"),
+                    UserModel(username="user", password_hash=hash_password("user123"), role="user"),
+                ]
             )
 
-        products_count = conn.execute("SELECT COUNT(*) AS total FROM products").fetchone()["total"]
-        if products_count == 0:
-            conn.executemany(
-                "INSERT INTO products (nombre, precio, imagen, activo) VALUES (?, ?, ?, ?)",
+        products_count = session.scalar(select(ProductModel).limit(1))
+        if products_count is None:
+            session.add_all(
                 [
-                    ("Camiseta básica", 19.99, None, 1),
-                    ("Sudadera PW2", 39.99, None, 1),
-                    ("Producto inactivo de ejemplo", 9.99, None, 0),
-                ],
+                    ProductModel(nombre="Camiseta básica", precio=19.99, imagen=None, activo=True),
+                    ProductModel(nombre="Sudadera PW2", precio=39.99, imagen=None, activo=True),
+                    ProductModel(nombre="Producto inactivo de ejemplo", precio=9.99, imagen=None, activo=False),
+                ]
             )
-        conn.commit()
+
+        session.commit()
 
 
-def db_session() -> Iterator[sqlite3.Connection]:
-    conn = get_connection()
+def db_session() -> Iterator[Session]:
+    session = SessionLocal()
     try:
-        yield conn
+        yield session
     finally:
-        conn.close()
+        session.close()

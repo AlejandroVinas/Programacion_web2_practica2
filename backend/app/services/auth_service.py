@@ -1,4 +1,4 @@
-import sqlite3
+from sqlalchemy.exc import IntegrityError
 
 from app.core.exceptions import AppError, UnauthorizedError
 from app.core.security import create_access_token, hash_password, verify_password
@@ -11,11 +11,11 @@ class AuthService:
 
     def register(self, username: str, password: str) -> dict:
         if self.user_repository.find_by_username(username):
-            raise AppError("El usuario ya existe", 400)
+            raise AppError("El usuario ya existe", 409)
         try:
             user = self.user_repository.create(username, hash_password(password), "user")
-        except sqlite3.IntegrityError:
-            raise AppError("El usuario ya existe", 400)
+        except IntegrityError:
+            raise AppError("El usuario ya existe", 409)
         return {"_id": user["_id"], "username": user["username"], "role": user["role"]}
 
     def login(self, username: str, password: str) -> str:
